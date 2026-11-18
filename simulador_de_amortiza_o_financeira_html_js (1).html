@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="overflow-x-hidden w-full max-w-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Amortização Financeira • CAD081</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden w-full max-w-full selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Cabeçalho Institucional / Didático -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md w-full">
+    <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="p-2 sm:p-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-950/50 shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <line x1="8" y1="6" x2="16" y2="6" />
+            <line x1="16" y1="14" x2="16" y2="18" />
+            <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-base sm:text-xl font-bold tracking-tight text-white truncate">
+              Simulador de Amortização Financeira
+            </h1>
+            <span class="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-emerald-400 border border-slate-700">
+              CAD081 • Projeções &amp; Conceitos
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 line-clamp-1 sm:line-clamp-none">
+            Compare Tabela Price, SAC e Sistema Americano (SAA) com aportes extras
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 shrink-0">
+        <button
+          id="btn-reset"
+          type="button"
+          class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+          title="Restaurar valores padrão"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          Restaurar Padrão
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal Centralizado e Responsivo -->
+  <main class="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
+    
+    <!-- Bloco Superior: Parâmetros + Resultados/Gráficos/Tabela -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
+
+      <!-- COLUNA ESQUERDA: Painel de Parâmetros (4 colunas no desktop) -->
+      <aside class="lg:col-span-4 w-full space-y-5 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+            Parâmetros do Financiamento
+          </h2>
+        </div>
+
+        <!-- 1. Valor Financiado -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label for="input-valor" class="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+              <span class="text-emerald-600 font-bold">R$</span>
+              Valor Financiado
+            </label>
+            <span class="text-xs font-medium text-slate-500">Principal (PV)</span>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">
+              R$
+            </span>
+            <input
+              id="input-valor"
+              type="number"
+              min="100"
+              max="10000000"
+              step="1000"
+              value="100000"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold text-base focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+            />
+          </div>
+          <input
+            id="range-valor"
+            type="range"
+            min="5000"
+            max="1000000"
+            step="5000"
+            value="100000"
+            class="w-full accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
+          />
+          <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+            <span>R$ 5 mil</span>
+            <span>R$ 500 mil</span>
+            <span>R$ 1 mi</span>
+          </div>
+        </div>
+
+        <!-- 2. Prazo / Tempo -->
+        <div class="space-y-2 pt-3 border-t border-slate-100">
+          <div class="flex justify-between items-center">
+            <label for="input-prazo" class="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Prazo (Meses)
+            </label>
+            <span id="label-anos-equiv" class="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-lg">
+              5,0 anos
+            </span>
+          </div>
+
+          <input
+            id="input-prazo"
+            type="number"
+            min="1"
+            max="420"
+            value="60"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold text-base focus:ring-2 focus:ring-indigo-500 outline-none"
+          />
+
+          <input
+            id="range-prazo"
+            type="range"
+            min="6"
+            max="360"
+            step="6"
+            value="60"
+            class="w-full accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
+          />
+          <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+            <span>6m</span>
+            <span>120m (10a)</span>
+            <span>240m (20a)</span>
+            <span>360m (30a)</span>
+          </div>
+        </div>
+
+        <!-- 3. Taxa de Juros -->
+        <div class="space-y-2 pt-3 border-t border-slate-100">
+          <div class="flex justify-between items-center gap-2">
+            <label for="input-taxa" class="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+              <span class="text-amber-600 font-bold">%</span>
+              Taxa de Juros
+            </label>
+            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 shrink-0">
+              <button
+                id="btn-taxa-mensal"
+                type="button"
+                class="px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-amber-700 shadow-xs"
+              >
+                % a.m.
+              </button>
+              <button
+                id="btn-taxa-anual"
+                type="button"
+                class="px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer text-slate-500 hover:text-slate-700"
+              >
+                % a.a.
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <div class="relative w-28 sm:w-32 shrink-0">
+              <input
+                id="input-taxa"
+                type="number"
+                min="0"
+                max="100"
+                step="0.05"
+                value="1.00"
+                class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold text-base focus:ring-2 focus:ring-amber-500 outline-none"
+              />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                %
+              </span>
+            </div>
+            <div id="box-taxa-equiv" class="text-xs text-slate-600 bg-amber-50/70 border border-amber-200/60 px-2.5 py-2 rounded-xl flex-1 min-w-0">
+              Equiv. anual: <strong class="text-amber-900">12,68% a.a.</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Amortização Extraordinária -->
+        <div class="space-y-3 pt-3 border-t border-slate-200">
+          <div class="flex items-center justify-between gap-2">
+            <label for="toggle-extra" class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              Amortização Extraordinária
+            </label>
+            <button
+              id="toggle-extra"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer bg-slate-300"
+            >
+              <span id="toggle-extra-knob" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+            </button>
+          </div>
+
+          <p id="extra-placeholder-msg" class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/70 leading-relaxed">
+            Ative para simular aportes adicionais (mensais ou pontuais) e visualizar a economia de juros e redução de prazo.
+          </p>
+
+          <!-- Painel de Configuração Extra (Oculto por padrão) -->
+          <div id="extra-config-panel" class="hidden space-y-3 bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200">
+            <!-- Frequência -->
+            <div class="grid grid-cols-2 gap-1.5 bg-emerald-100/70 p-1 rounded-lg">
+              <button
+                id="btn-extra-mensal"
+                type="button"
+                class="py-2 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-emerald-800 shadow-xs"
+              >
+                Aporte Mensal
+              </button>
+              <button
+                id="btn-extra-pontual"
+                type="button"
+                class="py-2 text-xs font-semibold rounded-md transition cursor-pointer text-emerald-700 hover:text-emerald-900"
+              >
+                Aporte Pontual
+              </button>
+            </div>
+
+            <!-- Valor do Aporte -->
+            <div>
+              <label for="input-extra-valor" class="block text-xs font-semibold text-emerald-900 mb-1">
+                Valor da Amortização Extra (R$)
+              </label>
+              <input
+                id="input-extra-valor"
+                type="number"
+                min="0"
+                step="100"
+                value="500"
+                class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-slate-900 font-bold text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+
+            <!-- Mês Específico (apenas se pontual) -->
+            <div id="group-extra-mes" class="hidden">
+              <label for="input-extra-mes" class="block text-xs font-semibold text-emerald-900 mb-1">
+                Mês do Aporte Pontual
+              </label>
+              <input
+                id="input-extra-mes"
+                type="number"
+                min="1"
+                max="60"
+                value="12"
+                class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-slate-900 font-bold text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+
+            <!-- Estratégia -->
+            <div>
+              <label class="block text-xs font-semibold text-emerald-900 mb-1">
+                Objetivo (Price e SAC)
+              </label>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button
+                  id="btn-estrategia-prazo"
+                  type="button"
+                  class="py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-emerald-600 text-white border-emerald-600"
+                >
+                  Reduzir Prazo
+                </button>
+                <button
+                  id="btn-estrategia-parcela"
+                  type="button"
+                  class="py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50"
+                >
+                  Reduzir Parcela
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- COLUNA DIREITA: Resultados, Análise Dinâmica, Gráficos e Tabela (8 colunas no desktop) -->
+      <div class="lg:col-span-8 w-full min-w-0 space-y-6">
+
+        <!-- 1. Cards Comparativos Lado a Lado -->
+        <section aria-label="Resumo Comparativo dos Sistemas">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">
+              Comparativo Lado a Lado <span class="text-xs font-normal text-slate-500">(toque para detalhar)</span>
+            </h2>
+            <span id="badge-extra-ativo" class="hidden inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+              Amortização extra ativa
+            </span>
+          </div>
+
+          <div id="cards-comparativos" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Preenchido via JavaScript -->
+          </div>
+        </section>
+
+        <!-- 2. NOVA SEÇÃO: Análise Dinâmica Inteligente (Insights em Tempo Real) -->
+        <section id="analise-dinamica" aria-label="Análise Dinâmica do Cenário" class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-4 sm:p-6 shadow-md border border-slate-700/80">
+          <!-- Preenchido via JavaScript em tempo real -->
+        </section>
+
+        <!-- 3. Gráficos Interativos (Chart.js) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6 space-y-6 sm:space-y-8">
+          <!-- Gráfico 1: Saldo Devedor -->
+          <div>
+            <div class="mb-3">
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">
+                1. Evolução do Saldo Devedor ao Longo do Tempo
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                Compare a velocidade de queda da dívida entre SAC (linear), Price (acelera no final) e Americano (quitação no vencimento).
+              </p>
+            </div>
+            <div class="relative h-60 sm:h-72 w-full">
+              <canvas id="chart-saldo"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico 2: Composição / Valor das Parcelas -->
+          <div class="pt-5 sm:pt-6 border-t border-slate-100">
+            <div class="mb-3">
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">
+                2. Fluxo de Pagamentos e Composição (<span id="titulo-grafico-composicao" class="text-emerald-700">Sistema SAC</span>)
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                Visualização mês a mês do quanto da sua parcela abate a dívida (Amortização) versus o custo financeiro (Juros).
+              </p>
+            </div>
+            <div class="relative h-60 sm:h-72 w-full">
+              <canvas id="chart-parcelas"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Tabela Detalhada Mês a Mês com Abas Responsivas -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden w-full">
+          <div class="border-b border-slate-200 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">
+              Cronograma Detalhado Mês a Mês
+            </h3>
+
+            <!-- Abas de Sistema (adaptadas para toque no mobile) -->
+            <div class="grid grid-cols-3 sm:inline-flex rounded-xl bg-slate-200/70 p-1 w-full sm:w-auto">
+              <button
+                type="button"
+                data-tab-sistema="PRICE"
+                class="tab-sistema-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900 text-center"
+              >
+                Price
+              </button>
+              <button
+                type="button"
+                data-tab-sistema="SAC"
+                class="tab-sistema-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-900 text-white shadow-xs text-center"
+              >
+                SAC
+              </button>
+              <button
+                type="button"
+                data-tab-sistema="AMERICANO"
+                class="tab-sistema-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900 text-center"
+              >
+                Americano
+              </button>
+            </div>
+          </div>
+
+          <!-- Wrapper com scroll horizontal interno para não quebrar mobile -->
+          <div class="overflow-x-auto w-full max-h-[460px] overflow-y-auto">
+            <table class="w-full min-w-[540px] text-left border-collapse text-xs sm:text-sm">
+              <thead id="tabela-head" class="bg-slate-100 text-slate-700 sticky top-0 z-10 border-b border-slate-200">
+                <!-- Cabeçalho dinâmico -->
+              </thead>
+              <tbody id="tabela-body" class="divide-y divide-slate-100">
+                <!-- Linhas dinâmicas -->
+              </tbody>
+              <tfoot id="tabela-foot" class="bg-slate-900 text-white sticky bottom-0 z-10 font-bold text-xs">
+                <!-- Rodapé totais -->
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- 5. NOVA SEÇÃO: Guia Conceitual Completo (Como, Quando e Para Que Usar) -->
+    <section aria-label="Guia Conceitual dos Sistemas de Amortização" class="pt-4 sm:pt-6 border-t border-slate-200 space-y-5">
+      <div class="max-w-3xl">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 mb-2">
+          Guia Didático de Matemática Financeira
+        </span>
+        <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          Entenda os Sistemas: Como, Quando e Para Que Usar
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+          Cada sistema de amortização distribui o pagamento dos juros e a devolução do capital emprestado de uma forma diferente. Veja qual se encaixa melhor em cada objetivo financeiro:
+        </p>
+      </div>
+
+      <!-- Grid de 3 Cards Conceituais (1 col mobile, 3 cols desktop) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+        
+        <!-- CARD 1: TABELA PRICE -->
+        <article class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-indigo-600 px-5 py-4 text-white">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider bg-indigo-500/70 px-2.5 py-0.5 rounded-md">
+                Sistema Francês
+              </span>
+              <span class="text-xs font-medium text-indigo-100">Parcelas Fixas</span>
+            </div>
+            <h3 class="text-lg font-bold mt-2">Tabela Price</h3>
+            <code class="block mt-2 text-[11px] font-mono bg-indigo-950/50 text-indigo-100 px-2.5 py-1.5 rounded-lg overflow-x-auto">
+              PMT = PV × [ i(1+i)ⁿ ] / [ (1+i)ⁿ - 1 ]
+            </code>
+          </div>
+
+          <div class="p-5 space-y-4 text-xs sm:text-sm text-slate-700 flex-1 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                  Como funciona
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  As prestações são <strong>iguais do início ao fim</strong> (desconsiderando correção monetária). Nos primeiros meses, a maior parte da parcela paga apenas juros e abate pouco da dívida. Com o tempo, os juros diminuem e a amortização cresce.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                  Quando usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Quando você precisa de <strong>previsibilidade no orçamento</strong>, tem renda fixa mensal ou precisa de uma <strong>1ª parcela mais baixa</strong> para caber no limite de comprometimento de renda exigido pelo banco.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                  Para que usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Financiamento de veículos (CDC), empréstimos pessoais, crédito consignado e parcelamentos de bens de consumo no varejo.
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+              <div class="bg-emerald-50 text-emerald-900 px-3 py-2 rounded-lg">
+                <strong>Vantagem:</strong> Parcela inicial menor e valor fixo fácil de planejar.
+              </div>
+              <div class="bg-amber-50 text-amber-900 px-3 py-2 rounded-lg">
+                <strong>Atenção:</strong> Custo total de juros maior e saldo devedor cai devagar no início.
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- CARD 2: SISTEMA SAC -->
+        <article class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-emerald-600 px-5 py-4 text-white">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider bg-emerald-500/70 px-2.5 py-0.5 rounded-md">
+                Amortização Constante
+              </span>
+              <span class="text-xs font-medium text-emerald-100">Parcelas Decrescentes</span>
+            </div>
+            <h3 class="text-lg font-bold mt-2">Sistema SAC</h3>
+            <code class="block mt-2 text-[11px] font-mono bg-emerald-950/50 text-emerald-100 px-2.5 py-1.5 rounded-lg overflow-x-auto">
+              Amort. = PV / n  |  PMTₜ = Amort. + (SDₜ₋₁ × i)
+            </code>
+          </div>
+
+          <div class="p-5 space-y-4 text-xs sm:text-sm text-slate-700 flex-1 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  Como funciona
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  O valor que abate a dívida principal é <strong>constante todos os meses</strong> (Valor Financiado ÷ Prazo). Como o saldo devedor cai rapidamente desde o 1º mês, os juros cobrados diminuem a cada prestação, fazendo a parcela cair continuamente.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  Quando usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Em contratos de <strong>longo prazo</strong>, quando você tem folga no orçamento inicial para suportar parcelas maiores no começo e deseja <strong>pagar menos juros no total</strong>.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  Para que usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Financiamento imobiliário (compra de casa, apartamento ou terreno pelo SFH/SFI) e financiamentos de máquinas e equipamentos de longo prazo.
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+              <div class="bg-emerald-50 text-emerald-900 px-3 py-2 rounded-lg">
+                <strong>Vantagem:</strong> Menor soma total de juros e redução rápida do saldo devedor.
+              </div>
+              <div class="bg-amber-50 text-amber-900 px-3 py-2 rounded-lg">
+                <strong>Atenção:</strong> Exige maior capacidade de pagamento nas primeiras parcelas.
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- CARD 3: SISTEMA AMERICANO (SAA) -->
+        <article class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-amber-600 px-5 py-4 text-white">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider bg-amber-500/70 px-2.5 py-0.5 rounded-md">
+                Sistema SAA
+              </span>
+              <span class="text-xs font-medium text-amber-100">Principal no Final</span>
+            </div>
+            <h3 class="text-lg font-bold mt-2">Sistema Americano</h3>
+            <code class="block mt-2 text-[11px] font-mono bg-amber-950/50 text-amber-100 px-2.5 py-1.5 rounded-lg overflow-x-auto">
+              PMTₜ = PV × i  |  PMTₙ = PV + (PV × i)
+            </code>
+          </div>
+
+          <div class="p-5 space-y-4 text-xs sm:text-sm text-slate-700 flex-1 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                  Como funciona
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Durante todo o contrato, o devedor paga <strong>apenas os juros</strong> sobre o saldo devedor, sem amortizar o principal. No último mês, quita-se <strong>100% do valor emprestado</strong> de uma só vez (parcela "balão") junto com o último juro.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                  Quando usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Quando o tomador precisa de <strong>alívio máximo no fluxo de caixa mensal</strong> durante um projeto e sabe que terá uma entrada grande de recursos (ou venda de ativo) na data de vencimento.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
+                  <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                  Para que usar
+                </h4>
+                <p class="text-slate-600 leading-relaxed">
+                  Títulos públicos com juros periódicos (NTN-F), debêntures corporativas, empréstimos-ponte (<em>bridge loans</em>), capital de giro e crédito rural de safra.
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+              <div class="bg-emerald-50 text-emerald-900 px-3 py-2 rounded-lg">
+                <strong>Vantagem:</strong> Menor desembolso mensal intermediário para preservar caixa.
+              </div>
+              <div class="bg-amber-50 text-amber-900 px-3 py-2 rounded-lg">
+                <strong>Atenção:</strong> Maior volume total de juros e risco de liquidez na parcela final.
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="border-t border-slate-200 bg-white mt-8 py-5 px-4 text-center text-xs text-slate-500">
+    Simulador Interativo de Matemática Financeira (CAD081) • Tabela Price, Sistema SAC e Sistema Americano (SAA)
+  </footer>
+
+  <!-- Lógica JavaScript Pura -->
+  <script>
+    // =========================================================================
+    // 1. ESTADO DA APLICAÇÃO
+    // =========================================================================
+    const state = {
+      valorFinanciado: 100000,
+      prazoMeses: 60,
+      tipoTaxa: 'mensal', // 'mensal' | 'anual'
+      taxaInput: 1.0,
+      usarAmortizacaoExtra: false,
+      tipoAmortizacaoExtra: 'mensal', // 'mensal' | 'pontual'
+      valorAmortizacaoExtra: 500,
+      mesAportePontual: 12,
+      estrategiaExtra: 'prazo', // 'prazo' | 'parcela'
+      sistemaAtivo: 'SAC' // 'PRICE' | 'SAC' | 'AMERICANO'
+    };
+
+    let chartSaldoInstance = null;
+    let chartParcelasInstance = null;
+
+    const ESTILOS_SISTEMA = {
+      PRICE: {
+        titulo: 'Tabela Price',
+        badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        textClass: 'text-indigo-600',
+        borderClass: 'border-indigo-500'
+      },
+      SAC: {
+        titulo: 'Sistema SAC',
+        badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        textClass: 'text-emerald-600',
+        borderClass: 'border-emerald-500'
+      },
+      AMERICANO: {
+        titulo: 'Americano (SAA)',
+        badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+        textClass: 'text-amber-600',
+        borderClass: 'border-amber-500'
+      }
+    };
+
+    // =========================================================================
+    // 2. UTILITÁRIOS DE FORMATAÇÃO E EQUIVALÊNCIA DE TAXAS
+    // =========================================================================
+    const formatBRL = (val) => {
+      if (isNaN(val) || val === null) return 'R$ 0,00';
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(val);
+    };
+
+    const formatCompactBRL = (val) => {
+      if (Math.abs(val) >= 1000000) return `R$ ${(val / 1000000).toFixed(1)}M`;
+      if (Math.abs(val) >= 1000) return `R$ ${(val / 1000).toFixed(0)}k`;
+      return `R$ ${val.toFixed(0)}`;
+    };
+
+    function obterTaxasEquivalentes() {
+      const val = Math.max(0, Number(state.taxaInput) || 0);
+      if (state.tipoTaxa === 'mensal') {
+        const iMensal = val / 100;
+        const iAnual = (Math.pow(1 + iMensal, 12) - 1) * 100;
+        return { taxaMensalDecimal: iMensal, taxaMensalPct: val, taxaAnualPct: iAnual };
+      } else {
+        const iAnual = val / 100;
+        const iMensal = (Math.pow(1 + iAnual, 1 / 12) - 1) * 100;
+        return { taxaMensalDecimal: iMensal / 100, taxaMensalPct: iMensal, taxaAnualPct: val };
+      }
+    }
+
+    // =========================================================================
+    // 3. MOTOR DE CÁLCULO FINANCEIRO
+    // =========================================================================
+    function calcularProjecoes(forcarSemExtra = false) {
+      const { taxaMensalDecimal: i } = obterTaxasEquivalentes();
+      const n = Math.max(1, Math.round(state.prazoMeses));
+      const P = Math.max(0, state.valorFinanciado);
+      const aplicarExtra = !forcarSemExtra && state.usarAmortizacaoExtra;
+      const mesPontual = Math.min(n, Math.max(1, Math.round(state.mesAportePontual)));
+
+      const calcularPMT = (pv, rate, periods) => {
+        if (periods <= 0 || pv <= 0) return 0;
+        if (rate === 0) return pv / periods;
+        const fator = Math.pow(1 + rate, periods);
+        return (pv * (rate * fator)) / (fator - 1);
+      };
+
+      const simularSistema = (sistema) => {
+        let saldo = P;
+        const linhas = [];
+        let totalJuros = 0;
+        let totalAmortizado = 0;
+        let totalPago = 0;
+
+        let pmtPriceAtual = sistema === 'PRICE' ? calcularPMT(P, i, n) : 0;
+        let amortSacAtual = sistema === 'SAC' ? P / n : 0;
+
+        for (let mes = 1; mes <= n; mes++) {
+          if (saldo <= 0.005) break;
+
+          const saldoInicial = saldo;
+          const juros = saldoInicial * i;
+          let amortizacaoNormal = 0;
+          let parcelaBase = 0;
+
+          if (sistema === 'PRICE') {
+            if (state.estrategiaExtra === 'parcela' && aplicarExtra && mes > 1) {
+              const mesesRestantes = n - mes + 1;
+              pmtPriceAtual = calcularPMT(saldoInicial, i, mesesRestantes);
+            }
+            parcelaBase = pmtPriceAtual;
+            amortizacaoNormal = Math.max(0, parcelaBase - juros);
+            if (amortizacaoNormal > saldoInicial) {
+              amortizacaoNormal = saldoInicial;
+              parcelaBase = amortizacaoNormal + juros;
+            }
+          } else if (sistema === 'SAC') {
+            if (state.estrategiaExtra === 'parcela' && aplicarExtra && mes > 1) {
+              const mesesRestantes = n - mes + 1;
+              amortSacAtual = saldoInicial / mesesRestantes;
+            }
+            amortizacaoNormal = Math.min(saldoInicial, amortSacAtual);
+            parcelaBase = amortizacaoNormal + juros;
+          } else if (sistema === 'AMERICANO') {
+            amortizacaoNormal = mes === n ? saldoInicial : 0;
+            parcelaBase = amortizacaoNormal + juros;
+          }
+
+          const saldoAposNormal = Math.max(0, saldoInicial - amortizacaoNormal);
+
+          // Amortização Extraordinária
+          let amortizacaoExtra = 0;
+          if (aplicarExtra && state.valorAmortizacaoExtra > 0 && saldoAposNormal > 0) {
+            if (state.tipoAmortizacaoExtra === 'mensal') {
+              amortizacaoExtra = Math.min(saldoAposNormal, state.valorAmortizacaoExtra);
+            } else if (state.tipoAmortizacaoExtra === 'pontual' && mes === mesPontual) {
+              amortizacaoExtra = Math.min(saldoAposNormal, state.valorAmortizacaoExtra);
+            }
+          }
+
+          const saldoFinal = Math.max(0, saldoAposNormal - amortizacaoExtra);
+          const desembolsoTotal = parcelaBase + amortizacaoExtra;
+
+          totalJuros += juros;
+          totalAmortizado += amortizacaoNormal + amortizacaoExtra;
+          totalPago += desembolsoTotal;
+
+          linhas.push({
+            mes,
+            saldoInicial,
+            juros,
+            amortizacaoNormal,
+            amortizacaoExtra,
+            parcelaBase,
+            desembolsoTotal,
+            saldoFinal
+          });
+
+          saldo = saldoFinal;
+        }
+
+        return {
+          linhas,
+          primeiraParcela: linhas.length > 0 ? linhas[0].parcelaBase : 0,
+          ultimaParcela: linhas.length > 0 ? linhas[linhas.length - 1].parcelaBase : 0,
+          totalJuros,
+          totalAmortizado,
+          totalPago,
+          prazoEfetivo: linhas.length
+        };
+      };
+
+      return {
+        PRICE: simularSistema('PRICE'),
+        SAC: simularSistema('SAC'),
+        AMERICANO: simularSistema('AMERICANO')
+      };
+    }
+
+    // =========================================================================
+    // 4. ATUALIZAÇÃO DA INTERFACE (CARDS, ANÁLISE DINÂMICA, GRÁFICOS E TABELA)
+    // =========================================================================
+    function renderizarTudo() {
+      // Atualizar equivalência de anos
+      const anos = (state.prazoMeses / 12).toFixed(1).replace('.', ',');
+      document.getElementById('label-anos-equiv').textContent = `${anos} anos`;
+
+      // Atualizar equivalência de taxa
+      const { taxaMensalPct, taxaAnualPct } = obterTaxasEquivalentes();
+      const boxTaxaEquiv = document.getElementById('box-taxa-equiv');
+      if (state.tipoTaxa === 'mensal') {
+        boxTaxaEquiv.innerHTML = `Equiv. anual: <strong class="text-amber-900">${taxaAnualPct.toFixed(2).replace('.', ',')}% a.a.</strong>`;
+      } else {
+        boxTaxaEquiv.innerHTML = `Equiv. mensal: <strong class="text-amber-900">${taxaMensalPct.toFixed(3).replace('.', ',')}% a.m.</strong>`;
+      }
+
+      // Ajustar limite do mês pontual
+      const inputExtraMes = document.getElementById('input-extra-mes');
+      inputExtraMes.max = state.prazoMeses;
+      if (state.mesAportePontual > state.prazoMeses) {
+        state.mesAportePontual = state.prazoMeses;
+        inputExtraMes.value = state.prazoMeses;
+      }
+
+      // Badge amortização ativa
+      const badgeExtra = document.getElementById('badge-extra-ativo');
+      if (state.usarAmortizacaoExtra) {
+        badgeExtra.classList.remove('hidden');
+      } else {
+        badgeExtra.classList.add('hidden');
+      }
+
+      // Rodar simulações
+      const projecoes = calcularProjecoes(false);
+      const projecoesBase = state.usarAmortizacaoExtra ? calcularProjecoes(true) : null;
+
+      renderizarCardsComparativos(projecoes, projecoesBase);
+      renderizarAnaliseDinamica(projecoes, projecoesBase);
+      atualizarEstiloAbas();
+      renderizarTabela(projecoes[state.sistemaAtivo]);
+      renderizarGraficos(projecoes);
+    }
+
+    function renderizarCardsComparativos(projecoes, projecoesBase) {
+      const container = document.getElementById('cards-comparativos');
+      const sistemas = ['PRICE', 'SAC', 'AMERICANO'];
+
+      container.innerHTML = sistemas
+        .map((id) => {
+          const dados = projecoes[id];
+          const base = projecoesBase ? projecoesBase[id] : null;
+          const estilo = ESTILOS_SISTEMA[id];
+          const selecionado = state.sistemaAtivo === id;
+
+          const economiaJuros = base ? Math.max(0, base.totalJuros - dados.totalJuros) : 0;
+          const mesesReduzidos = base ? Math.max(0, base.prazoEfetivo - dados.prazoEfetivo) : 0;
+
+          return `
+            <div
+              onclick="selecionarSistema('${id}')"
+              role="button"
+              tabindex="0"
+              class="relative rounded-2xl p-4 transition-all cursor-pointer border-2 bg-white ${
+                selecionado
+                  ? `${estilo.borderClass} shadow-md ring-2 ring-slate-900/5`
+                  : 'border-slate-200/80 hover:border-slate-300 shadow-xs'
+              }"
+            >
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="inline-block px-2.5 py-0.5 rounded-md text-xs font-bold border ${estilo.badgeClass}">
+                  ${estilo.titulo}
+                </span>
+                ${
+                  selecionado
+                    ? `<svg class="w-5 h-5 shrink-0 ${estilo.textClass}" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>`
+                    : ''
+                }
+              </div>
+
+              <div class="space-y-1.5 text-xs sm:text-sm">
+                <div class="flex justify-between items-baseline gap-1">
+                  <span class="text-slate-500 text-xs">1ª Parcela:</span>
+                  <span class="font-bold text-slate-900">${formatBRL(dados.primeiraParcela)}</span>
+                </div>
+                <div class="flex justify-between items-baseline gap-1">
+                  <span class="text-slate-500 text-xs">Última (${dados.prazoEfetivo}ºm):</span>
+                  <span class="font-bold text-slate-900">${formatBRL(dados.ultimaParcela)}</span>
+                </div>
+                <div class="pt-2 border-t border-slate-100 flex justify-between items-baseline gap-1">
+                  <span class="text-slate-500 text-xs">Total Juros:</span>
+                  <span class="font-bold ${estilo.textClass}">${formatBRL(dados.totalJuros)}</span>
+                </div>
+                <div class="flex justify-between items-baseline gap-1">
+                  <span class="text-slate-600 font-medium text-xs">Total Pago:</span>
+                  <span class="font-extrabold text-slate-900 text-sm sm:text-base">${formatBRL(dados.totalPago)}</span>
+                </div>
+              </div>
+
+              ${
+                state.usarAmortizacaoExtra && (economiaJuros > 0.01 || mesesReduzidos > 0)
+                  ? `<div class="mt-3 pt-2 border-t border-emerald-100 bg-emerald-50/90 px-2.5 py-1.5 rounded-lg text-[11px] text-emerald-800 space-y-0.5">
+                      <div class="font-bold">Economia: ${formatBRL(economiaJuros)}</div>
+                      ${mesesReduzidos > 0 ? `<div>Prazo: -${mesesReduzidos} ${mesesReduzidos === 1 ? 'mês' : 'meses'}</div>` : ''}
+                    </div>`
+                  : ''
+              }
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // NOVA FUNÇÃO: Gera leitura inteligente dos números simulados em tempo real
+    function renderizarAnaliseDinamica(projecoes, projecoesBase) {
+      const container = document.getElementById('analise-dinamica');
+      const { PRICE, SAC, AMERICANO } = projecoes;
+
+      const diffJurosSacPrice = PRICE.totalJuros - SAC.totalJuros;
+      const diffPrimeiraParcela = SAC.primeiraParcela - PRICE.primeiraParcela;
+      const diffAmerSac = AMERICANO.totalJuros - SAC.totalJuros;
+
+      // Bloco de resumo da amortização extraordinária (quando ativa)
+      let blocoExtraHTML = '';
+      if (state.usarAmortizacaoExtra && projecoesBase) {
+        const econSac = Math.max(0, projecoesBase.SAC.totalJuros - SAC.totalJuros);
+        const mesesSac = Math.max(0, projecoesBase.SAC.prazoEfetivo - SAC.prazoEfetivo);
+        const econPrice = Math.max(0, projecoesBase.PRICE.totalJuros - PRICE.totalJuros);
+        const mesesPrice = Math.max(0, projecoesBase.PRICE.prazoEfetivo - PRICE.prazoEfetivo);
+        const econAmer = Math.max(0, projecoesBase.AMERICANO.totalJuros - AMERICANO.totalJuros);
+
+        blocoExtraHTML = `
+          <div class="mt-4 pt-4 border-t border-slate-700/80 bg-emerald-950/50 rounded-xl p-3.5 border border-emerald-700/40">
+            <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Impacto da Amortização Extraordinária
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <div class="bg-slate-900/70 p-2.5 rounded-lg border border-slate-700/60">
+                <span class="text-indigo-300 font-semibold block">Na Tabela Price:</span>
+                <span class="text-slate-200">Economia de <strong class="text-emerald-400">${formatBRL(econPrice)}</strong>${mesesPrice > 0 ? ` e corte de <strong>${mesesPrice} ${mesesPrice === 1 ? 'mês' : 'meses'}</strong>` : ''}.</span>
+              </div>
+              <div class="bg-slate-900/70 p-2.5 rounded-lg border border-slate-700/60">
+                <span class="text-emerald-300 font-semibold block">No Sistema SAC:</span>
+                <span class="text-slate-200">Economia de <strong class="text-emerald-400">${formatBRL(econSac)}</strong>${mesesSac > 0 ? ` e corte de <strong>${mesesSac} ${mesesSac === 1 ? 'mês' : 'meses'}</strong>` : ''}.</span>
+              </div>
+              <div class="bg-slate-900/70 p-2.5 rounded-lg border border-slate-700/60">
+                <span class="text-amber-300 font-semibold block">No Americano (SAA):</span>
+                <span class="text-slate-200">Economia de <strong class="text-emerald-400">${formatBRL(econAmer)}</strong> e redução da parcela final.</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </span>
+            Análise Dinâmica do Cenário Simulado
+          </h3>
+          <span class="text-[11px] font-medium text-slate-400 hidden sm:inline">Atualizado em tempo real</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm leading-relaxed">
+          <div class="bg-white/5 rounded-xl p-3.5 border border-white/10">
+            <span class="text-emerald-400 font-bold block mb-1">SAC vs. Tabela Price</span>
+            ${
+              diffJurosSacPrice > 0.01
+                ? `<p class="text-slate-200">
+                    O <strong>SAC</strong> gera uma economia de <strong class="text-emerald-400">${formatBRL(diffJurosSacPrice)}</strong> em juros em relação à Price. Em troca, exige uma 1ª parcela <strong class="text-amber-300">${formatBRL(Math.abs(diffPrimeiraParcela))} maior</strong> no início do contrato.
+                  </p>`
+                : `<p class="text-slate-200">
+                    Com taxa de juros igual a zero, <strong>SAC e Tabela Price</strong> possuem exatamente o mesmo custo total e parcelas idênticas de <strong class="text-emerald-400">${formatBRL(SAC.primeiraParcela)}</strong>.
+                  </p>`
+            }
+          </div>
+
+          <div class="bg-white/5 rounded-xl p-3.5 border border-white/10">
+            <span class="text-amber-400 font-bold block mb-1">Comportamento do Sistema Americano</span>
+            <p class="text-slate-200">
+              Nos meses intermediários você desembolsa apenas <strong class="text-amber-300">${formatBRL(AMERICANO.primeiraParcela)}/mês</strong> de juros, mas enfrentará uma parcela final de <strong class="text-white">${formatBRL(AMERICANO.ultimaParcela)}</strong> (custando <strong class="text-amber-300">${formatBRL(Math.max(0, diffAmerSac))}</strong> a mais em juros que o SAC).
+            </p>
+          </div>
+        </div>
+
+        ${blocoExtraHTML}
+      `;
+    }
+
+    function atualizarEstiloAbas() {
+      document.querySelectorAll('.tab-sistema-btn').forEach((btn) => {
+        const sis = btn.getAttribute('data-tab-sistema');
+        if (sis === state.sistemaAtivo) {
+          btn.className =
+            'tab-sistema-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-900 text-white shadow-xs text-center';
+        } else {
+          btn.className =
+            'tab-sistema-btn px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900 text-center';
+        }
+      });
+
+      const mapaNomes = { PRICE: 'Tabela Price', SAC: 'Sistema SAC', AMERICANO: 'Sistema Americano (SAA)' };
+      document.getElementById('titulo-grafico-composicao').textContent = mapaNomes[state.sistemaAtivo];
+    }
+
+    function renderizarTabela(dadosSistema) {
+      const thead = document.getElementById('tabela-head');
+      const tbody = document.getElementById('tabela-body');
+      const tfoot = document.getElementById('tabela-foot');
+      const extraAtivo = state.usarAmortizacaoExtra;
+
+      thead.innerHTML = `
+        <tr>
+          <th class="py-3 px-3 sm:px-4 font-bold">Mês</th>
+          <th class="py-3 px-3 sm:px-4 font-bold text-right">Saldo Inicial</th>
+          <th class="py-3 px-3 sm:px-4 font-bold text-right text-amber-700">Juros</th>
+          <th class="py-3 px-3 sm:px-4 font-bold text-right text-indigo-700">Amort. Normal</th>
+          ${extraAtivo ? '<th class="py-3 px-3 sm:px-4 font-bold text-right text-emerald-700">Amort. Extra</th>' : ''}
+          <th class="py-3 px-3 sm:px-4 font-bold text-right">Parcela Base</th>
+          ${extraAtivo ? '<th class="py-3 px-3 sm:px-4 font-bold text-right">Total Mês</th>' : ''}
+          <th class="py-3 px-3 sm:px-4 font-bold text-right">Saldo Final</th>
+        </tr>
+      `;
+
+      tbody.innerHTML = dadosSistema.linhas
+        .map(
+          (l) => `
+          <tr class="hover:bg-slate-50/90 transition-colors ${l.amortizacaoExtra > 0 ? 'bg-emerald-50/40' : ''}">
+            <td class="py-2.5 px-3 sm:px-4 font-semibold text-slate-700">${l.mes}</td>
+            <td class="py-2.5 px-3 sm:px-4 text-right text-slate-600 font-mono text-xs">${formatBRL(l.saldoInicial)}</td>
+            <td class="py-2.5 px-3 sm:px-4 text-right text-amber-700 font-mono text-xs">${formatBRL(l.juros)}</td>
+            <td class="py-2.5 px-3 sm:px-4 text-right text-indigo-700 font-mono text-xs">${formatBRL(l.amortizacaoNormal)}</td>
+            ${
+              extraAtivo
+                ? `<td class="py-2.5 px-3 sm:px-4 text-right text-emerald-700 font-semibold font-mono text-xs">${
+                    l.amortizacaoExtra > 0 ? formatBRL(l.amortizacaoExtra) : '-'
+                  }</td>`
+                : ''
+            }
+            <td class="py-2.5 px-3 sm:px-4 text-right font-semibold text-slate-800 font-mono text-xs">${formatBRL(l.parcelaBase)}</td>
+            ${
+              extraAtivo
+                ? `<td class="py-2.5 px-3 sm:px-4 text-right font-bold text-slate-900 font-mono text-xs">${formatBRL(l.desembolsoTotal)}</td>`
+                : ''
+            }
+            <td class="py-2.5 px-3 sm:px-4 text-right text-slate-700 font-mono text-xs">${formatBRL(l.saldoFinal)}</td>
+          </tr>
+        `
+        )
+        .join('');
+
+      tfoot.innerHTML = `
+        <tr>
+          <td class="py-3 px-3 sm:px-4">TOTAL</td>
+          <td class="py-3 px-3 sm:px-4 text-right text-slate-400">—</td>
+          <td class="py-3 px-3 sm:px-4 text-right text-amber-300 font-mono">${formatBRL(dadosSistema.totalJuros)}</td>
+          <td colspan="${extraAtivo ? 2 : 1}" class="py-3 px-3 sm:px-4 text-right text-emerald-300 font-mono">${formatBRL(dadosSistema.totalAmortizado)}</td>
+          <td colspan="${extraAtivo ? 2 : 1}" class="py-3 px-3 sm:px-4 text-right text-white font-mono">${formatBRL(dadosSistema.totalPago)}</td>
+          <td class="py-3 px-3 sm:px-4 text-right text-slate-300 font-mono">R$ 0,00</td>
+        </tr>
+      `;
+    }
+
+    function renderizarGraficos(projecoes) {
+      const maxMeses = Math.max(
+        projecoes.PRICE.linhas.length,
+        projecoes.SAC.linhas.length,
+        projecoes.AMERICANO.linhas.length
+      );
+
+      const labelsSaldo = ['Início'];
+      const serieSaldoPrice = [state.valorFinanciado];
+      const serieSaldoSac = [state.valorFinanciado];
+      const serieSaldoAmer = [state.valorFinanciado];
+
+      for (let m = 1; m <= maxMeses; m++) {
+        labelsSaldo.push(`Mês ${m}`);
+        serieSaldoPrice.push(projecoes.PRICE.linhas[m - 1] ? projecoes.PRICE.linhas[m - 1].saldoFinal : 0);
+        serieSaldoSac.push(projecoes.SAC.linhas[m - 1] ? projecoes.SAC.linhas[m - 1].saldoFinal : 0);
+        serieSaldoAmer.push(projecoes.AMERICANO.linhas[m - 1] ? projecoes.AMERICANO.linhas[m - 1].saldoFinal : 0);
+      }
+
+      const ctxSaldo = document.getElementById('chart-saldo').getContext('2d');
+      if (chartSaldoInstance) chartSaldoInstance.destroy();
+
+      chartSaldoInstance = new Chart(ctxSaldo, {
+        type: 'line',
+        data: {
+          labels: labelsSaldo,
+          datasets: [
+            {
+              label: 'Americano (SAA)',
+              data: serieSaldoAmer,
+              borderColor: '#d97706',
+              backgroundColor: 'rgba(217, 119, 6, 0.08)',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.1
+            },
+            {
+              label: 'Tabela Price',
+              data: serieSaldoPrice,
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.12)',
+              fill: true,
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.2
+            },
+            {
+              label: 'Sistema SAC',
+              data: serieSaldoSac,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              fill: true,
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, usePointStyle: true, font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatBRL(ctx.parsed.y)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v) => formatCompactBRL(v), font: { size: 10 } }
+            }
+          }
+        }
+      });
+
+      const linhasAtivas = projecoes[state.sistemaAtivo].linhas;
+      const labelsParcelas = linhasAtivas.map((l) => `Mês ${l.mes}`);
+      const jurosAtivos = linhasAtivas.map((l) => l.juros);
+      const amortAtiva = linhasAtivas.map((l) => l.amortizacaoNormal + l.amortizacaoExtra);
+
+      const ctxParcelas = document.getElementById('chart-parcelas').getContext('2d');
+      if (chartParcelasInstance) chartParcelasInstance.destroy();
+
+      chartParcelasInstance = new Chart(ctxParcelas, {
+        type: 'bar',
+        data: {
+          labels: labelsParcelas,
+          datasets: [
+            {
+              label: 'Amortização (Abate Dívida)',
+              data: amortAtiva,
+              backgroundColor: '#10b981',
+              stack: 'composicao',
+              borderRadius: 2
+            },
+            {
+              label: 'Juros Pagos',
+              data: jurosAtivos,
+              backgroundColor: '#f59e0b',
+              stack: 'composicao',
+              borderRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, usePointStyle: true, font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatBRL(ctx.parsed.y)}`,
+                footer: (items) => {
+                  const soma = items.reduce((acc, it) => acc + it.parsed.y, 0);
+                  return `Total no Mês: ${formatBRL(soma)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: { callback: (v) => formatCompactBRL(v), font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    // =========================================================================
+    // 5. EVENTOS E INTERATIVIDADE
+    // =========================================================================
+    window.selecionarSistema = function (sistema) {
+      state.sistemaAtivo = sistema;
+      renderizarTudo();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputValor = document.getElementById('input-valor');
+      const rangeValor = document.getElementById('range-valor');
+
+      inputValor.addEventListener('input', (e) => {
+        state.valorFinanciado = Math.max(0, Number(e.target.value) || 0);
+        rangeValor.value = Math.min(1000000, state.valorFinanciado);
+        renderizarTudo();
+      });
+
+      rangeValor.addEventListener('input', (e) => {
+        state.valorFinanciado = Number(e.target.value);
+        inputValor.value = state.valorFinanciado;
+        renderizarTudo();
+      });
+
+      const inputPrazo = document.getElementById('input-prazo');
+      const rangePrazo = document.getElementById('range-prazo');
+
+      inputPrazo.addEventListener('input', (e) => {
+        state.prazoMeses = Math.min(420, Math.max(1, Math.round(Number(e.target.value) || 1)));
+        rangePrazo.value = Math.min(360, state.prazoMeses);
+        renderizarTudo();
+      });
+
+      rangePrazo.addEventListener('input', (e) => {
+        state.prazoMeses = Number(e.target.value);
+        inputPrazo.value = state.prazoMeses;
+        renderizarTudo();
+      });
+
+      const inputTaxa = document.getElementById('input-taxa');
+      const btnTaxaMensal = document.getElementById('btn-taxa-mensal');
+      const btnTaxaAnual = document.getElementById('btn-taxa-anual');
+
+      inputTaxa.addEventListener('input', (e) => {
+        state.taxaInput = Math.max(0, Number(e.target.value) || 0);
+        renderizarTudo();
+      });
+
+      btnTaxaMensal.addEventListener('click', () => {
+        if (state.tipoTaxa === 'mensal') return;
+        const { taxaMensalPct } = obterTaxasEquivalentes();
+        state.tipoTaxa = 'mensal';
+        state.taxaInput = Number(taxaMensalPct.toFixed(4));
+        inputTaxa.value = state.taxaInput;
+
+        btnTaxaMensal.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-amber-700 shadow-xs';
+        btnTaxaAnual.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer text-slate-500 hover:text-slate-700';
+        renderizarTudo();
+      });
+
+      btnTaxaAnual.addEventListener('click', () => {
+        if (state.tipoTaxa === 'anual') return;
+        const { taxaAnualPct } = obterTaxasEquivalentes();
+        state.tipoTaxa = 'anual';
+        state.taxaInput = Number(taxaAnualPct.toFixed(2));
+        inputTaxa.value = state.taxaInput;
+
+        btnTaxaAnual.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-amber-700 shadow-xs';
+        btnTaxaMensal.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer text-slate-500 hover:text-slate-700';
+        renderizarTudo();
+      });
+
+      const toggleExtra = document.getElementById('toggle-extra');
+      const toggleKnob = document.getElementById('toggle-extra-knob');
+      const extraPanel = document.getElementById('extra-config-panel');
+      const extraMsg = document.getElementById('extra-placeholder-msg');
+
+      toggleExtra.addEventListener('click', () => {
+        state.usarAmortizacaoExtra = !state.usarAmortizacaoExtra;
+        toggleExtra.setAttribute('aria-checked', String(state.usarAmortizacaoExtra));
+
+        if (state.usarAmortizacaoExtra) {
+          toggleExtra.classList.replace('bg-slate-300', 'bg-emerald-600');
+          toggleKnob.classList.replace('translate-x-1', 'translate-x-6');
+          extraPanel.classList.remove('hidden');
+          extraMsg.classList.add('hidden');
+        } else {
+          toggleExtra.classList.replace('bg-emerald-600', 'bg-slate-300');
+          toggleKnob.classList.replace('translate-x-6', 'translate-x-1');
+          extraPanel.classList.add('hidden');
+          extraMsg.classList.remove('hidden');
+        }
+        renderizarTudo();
+      });
+
+      const btnExtraMensal = document.getElementById('btn-extra-mensal');
+      const btnExtraPontual = document.getElementById('btn-extra-pontual');
+      const groupExtraMes = document.getElementById('group-extra-mes');
+
+      btnExtraMensal.addEventListener('click', () => {
+        state.tipoAmortizacaoExtra = 'mensal';
+        btnExtraMensal.className = 'py-2 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-emerald-800 shadow-xs';
+        btnExtraPontual.className = 'py-2 text-xs font-semibold rounded-md transition cursor-pointer text-emerald-700 hover:text-emerald-900';
+        groupExtraMes.classList.add('hidden');
+        renderizarTudo();
+      });
+
+      btnExtraPontual.addEventListener('click', () => {
+        state.tipoAmortizacaoExtra = 'pontual';
+        btnExtraPontual.className = 'py-2 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-emerald-800 shadow-xs';
+        btnExtraMensal.className = 'py-2 text-xs font-semibold rounded-md transition cursor-pointer text-emerald-700 hover:text-emerald-900';
+        groupExtraMes.classList.remove('hidden');
+        renderizarTudo();
+      });
+
+      document.getElementById('input-extra-valor').addEventListener('input', (e) => {
+        state.valorAmortizacaoExtra = Math.max(0, Number(e.target.value) || 0);
+        renderizarTudo();
+      });
+
+      document.getElementById('input-extra-mes').addEventListener('input', (e) => {
+        state.mesAportePontual = Math.min(state.prazoMeses, Math.max(1, Math.round(Number(e.target.value) || 1)));
+        renderizarTudo();
+      });
+
+      const btnEstPrazo = document.getElementById('btn-estrategia-prazo');
+      const btnEstParcela = document.getElementById('btn-estrategia-parcela');
+
+      btnEstPrazo.addEventListener('click', () => {
+        state.estrategiaExtra = 'prazo';
+        btnEstPrazo.className = 'py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-emerald-600 text-white border-emerald-600';
+        btnEstParcela.className = 'py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50';
+        renderizarTudo();
+      });
+
+      btnEstParcela.addEventListener('click', () => {
+        state.estrategiaExtra = 'parcela';
+        btnEstParcela.className = 'py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-emerald-600 text-white border-emerald-600';
+        btnEstPrazo.className = 'py-2 px-2 text-xs font-medium rounded-lg border transition cursor-pointer bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50';
+        renderizarTudo();
+      });
+
+      document.querySelectorAll('.tab-sistema-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.sistemaAtivo = btn.getAttribute('data-tab-sistema');
+          renderizarTudo();
+        });
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        state.valorFinanciado = 100000;
+        state.prazoMeses = 60;
+        state.tipoTaxa = 'mensal';
+        state.taxaInput = 1.0;
+        state.usarAmortizacaoExtra = false;
+        state.tipoAmortizacaoExtra = 'mensal';
+        state.valorAmortizacaoExtra = 500;
+        state.mesAportePontual = 12;
+        state.estrategiaExtra = 'prazo';
+        state.sistemaAtivo = 'SAC';
+
+        inputValor.value = 100000;
+        rangeValor.value = 100000;
+        inputPrazo.value = 60;
+        rangePrazo.value = 60;
+        inputTaxa.value = '1.00';
+
+        btnTaxaMensal.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer bg-white text-amber-700 shadow-xs';
+        btnTaxaAnual.className = 'px-2.5 py-1 text-xs font-semibold rounded-md transition cursor-pointer text-slate-500 hover:text-slate-700';
+
+        toggleExtra.setAttribute('aria-checked', 'false');
+        toggleExtra.className = 'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer bg-slate-300';
+        toggleKnob.className = 'inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1';
+        extraPanel.classList.add('hidden');
+        extraMsg.classList.remove('hidden');
+
+        renderizarTudo();
+      });
+
+      renderizarTudo();
+    });
+  </script>
+</body>
+</html>
